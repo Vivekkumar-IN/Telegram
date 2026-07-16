@@ -14268,6 +14268,24 @@ public class MessagesController extends BaseController implements NotificationCe
         });
     }
 
+    public void refreshHiddenOnlineStatus() {
+        if (!SharedConfig.hideOnlineStatus) {
+            return;
+        }
+        if (statusRequest != 0) {
+            getConnectionsManager().cancelRequest(statusRequest, true);
+        }
+        TL_account.updateStatus req = new TL_account.updateStatus();
+        req.offline = true;
+        statusRequest = getConnectionsManager().sendRequest(req, (response, error) -> {
+            if (error == null) {
+                offlineSent = true;
+                statusSettingState = 2;
+            }
+            statusRequest = 0;
+        });
+    }
+
     private void completeReadTask(ReadTask task) {
         if (SharedConfig.secretlyReadMessages) {
             return;

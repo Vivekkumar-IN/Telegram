@@ -4070,6 +4070,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if (replyToMsg != null && SharedConfig.secretlyReadMessages) {
             getMessagesController().forceMarkDialogHistoryRead(peer);
         }
+        if (SharedConfig.hideOnlineStatus) {
+            AndroidUtilities.runOnUIThread(() -> getMessagesController().refreshHiddenOnlineStatus(), 2000);
+        }
         TLRPC.WebPage webPage = sendMessageParams.webPage;
         TLRPC.TL_messageMediaWebPage mediaWebPage = sendMessageParams.mediaWebPage;
         boolean searchLinks = sendMessageParams.searchLinks;
