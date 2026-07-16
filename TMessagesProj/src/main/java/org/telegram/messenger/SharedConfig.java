@@ -910,10 +910,17 @@ public class SharedConfig {
         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("hideOnlineStatus", hideOnlineStatus);
+        if (hideOnlineStatus && !secretlyReadMessages) {
+            secretlyReadMessages = true;
+            editor.putBoolean("secretlyReadMessages", secretlyReadMessages);
+        }
         editor.apply();
     }
 
     public static void toggleSecretlyReadMessages() {
+        if (hideOnlineStatus) {
+            return;
+        }
         secretlyReadMessages = !secretlyReadMessages;
         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
