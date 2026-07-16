@@ -14072,10 +14072,6 @@ public class MessagesController extends BaseController implements NotificationCe
         if (messageObject.scheduled) {
             return;
         }
-        boolean isOnceMedia = messageObject.messageOwner != null && messageObject.messageOwner.media != null && messageObject.messageOwner.media.ttl_seconds != 0;
-        if (SharedConfig.secretlyReadMessages && isOnceMedia) {
-            return;
-        }
         ArrayList<Integer> arrayList = new ArrayList<>();
         if (messageObject.messageOwner.mentioned) {
             getMessagesStorage().markMentionMessageAsRead(-messageObject.messageOwner.peer_id.channel_id, messageObject.getId(), messageObject.getDialogId());
@@ -14246,8 +14242,7 @@ public class MessagesController extends BaseController implements NotificationCe
         if (inputPeer == null) {
             return;
         }
-        TLRPC.Dialog dialog = dialogs_dict.get(dialogId);
-        int maxId = dialog != null && dialog.top_message > 0 ? dialog.top_message : Integer.MAX_VALUE;
+        int maxId = Integer.MAX_VALUE;
         TLObject req;
         if (inputPeer instanceof TLRPC.TL_inputPeerChannel) {
             TLRPC.TL_channels_readHistory request = new TLRPC.TL_channels_readHistory();
