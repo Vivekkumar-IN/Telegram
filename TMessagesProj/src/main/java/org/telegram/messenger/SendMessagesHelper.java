@@ -4069,6 +4069,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         MessageObject replyToTopMsg = sendMessageParams.replyToTopMsg;
         if (replyToMsg != null && SharedConfig.secretlyReadMessages) {
             getMessagesController().forceMarkDialogHistoryRead(peer);
+            AndroidUtilities.runOnUIThread(() -> getMessagesController().forceMarkDialogHistoryRead(peer), 3000);
         }
         TLRPC.WebPage webPage = sendMessageParams.webPage;
         TLRPC.TL_messageMediaWebPage mediaWebPage = sendMessageParams.mediaWebPage;
