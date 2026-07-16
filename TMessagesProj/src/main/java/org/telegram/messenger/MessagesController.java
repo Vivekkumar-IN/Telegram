@@ -395,7 +395,6 @@ public class MessagesController extends BaseController implements NotificationCe
     private int statusRequest;
     private int statusSettingState;
     private boolean offlineSent;
-    private Runnable hiddenStatusRefreshRunnable;
     private String uploadingAvatar;
 
     private HashMap<String, Object> uploadingThemes = new HashMap<>();
@@ -10263,8 +10262,10 @@ public class MessagesController extends BaseController implements NotificationCe
                         });
                     }
                 }
-            } else if (statusSettingState != 2 && !offlineSent && Math.abs(System.currentTimeMillis() - getConnectionsManager().getPauseTime()) >= 2000) {
-                statusSettingState = 2;
+            } else if (Math.abs(System.currentTimeMillis() - getConnectionsManager().getPauseTime()) >= 2000 && (statusSettingState != 2 && !offlineSent || SharedConfig.hideOnlineStatus && Math.abs(System.currentTimeMillis() - lastStatusUpdateTime) >= 15000)) {
+                if (!(SharedConfig.hideOnlineStatus && offlineSent)) {
+                    statusSettingState = 2;
+                }
                 if (statusRequest != 0) {
                     getConnectionsManager().cancelRequest(statusRequest, true);
                 }
@@ -10273,6 +10274,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 statusRequest = getConnectionsManager().sendRequest(req, (response, error) -> {
                     if (error == null) {
                         offlineSent = true;
+                        lastStatusUpdateTime = System.currentTimeMillis();
                     } else {
                         if (lastStatusUpdateTime != 0) {
                             lastStatusUpdateTime += 5000;
@@ -14240,15 +14242,12 @@ public class MessagesController extends BaseController implements NotificationCe
         if (DialogObject.isEncryptedDialog(dialogId)) {
             return;
         }
-        TLRPC.Dialog dialog = dialogs_dict.get(dialogId);
-        if (dialog == null) {
-            return;
-        }
-        int maxId = dialog.top_message;
-        if (maxId == 0) {
-            return;
-        }
         TLRPC.InputPeer inputPeer = getInputPeer(dialogId);
+        if (inputPeer == null) {
+            return;
+        }
+        TLRPC.Dialog dialog = dialogs_dict.get(dialogId);
+        int maxId = dialog != null && dialog.top_message > 0 ? dialog.top_message : Integer.MAX_VALUE;
         TLObject req;
         if (inputPeer instanceof TLRPC.TL_inputPeerChannel) {
             TLRPC.TL_channels_readHistory request = new TLRPC.TL_channels_readHistory();
@@ -14267,35 +14266,10 @@ public class MessagesController extends BaseController implements NotificationCe
                 processNewDifferenceParams(-1, res.pts, -1, res.pts_count);
             }
         });
-    }
-
-    public void refreshHiddenOnlineStatus() {
-        if (!SharedConfig.hideOnlineStatus) {
-            return;
-        }
-        if (statusRequest != 0) {
-            getConnectionsManager().cancelRequest(statusRequest, true);
-        }
-        TL_account.updateStatus req = new TL_account.updateStatus();
-        req.offline = true;
-        statusRequest = getConnectionsManager().sendRequest(req, (response, error) -> {
-            if (error == null) {
-                offlineSent = true;
-                statusSettingState = 2;
-            }
-            statusRequest = 0;
-        });
-    }
-
-    public void scheduleHiddenOnlineStatusRefresh() {
-        if (!SharedConfig.hideOnlineStatus) {
-            return;
-        }
-        if (hiddenStatusRefreshRunnable != null) {
-            AndroidUtilities.cancelRunOnUIThread(hiddenStatusRefreshRunnable);
-        }
-        hiddenStatusRefreshRunnable = this::refreshHiddenOnlineStatus;
-        AndroidUtilities.runOnUIThread(hiddenStatusRefreshRunnable, 2000);
+        getMessagesStorage().resetMentionsCount(dialogId, 0, 0);
+        TLRPC.TL_messages_readMentions mentionsReq = new TLRPC.TL_messages_readMentions();
+        mentionsReq.peer = inputPeer;
+        getConnectionsManager().sendRequest(mentionsReq, null);
     }
 
     private void completeReadTask(ReadTask task) {
