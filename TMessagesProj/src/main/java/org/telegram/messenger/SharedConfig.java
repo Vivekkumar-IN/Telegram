@@ -282,6 +282,10 @@ public class SharedConfig {
     public static String searchEngineCustomURLQuery, searchEngineCustomURLAutocomplete;
     public static boolean chatBubbles = Build.VERSION.SDK_INT >= 30;
     public static boolean raiseToSpeak = false;
+    public static boolean hideOnlineStatus = false;
+    public static boolean secretlyReadMessages = false;
+    public static boolean hideTypingStatus = false;
+    public static boolean hideStoryViews = false;
     public static boolean raiseToListen = true;
     public static boolean nextMediaTap = true;
     public static boolean recordViaSco = false;
@@ -590,6 +594,10 @@ public class SharedConfig {
             searchEngineType = preferences.getInt("searchEngineType", 0);
             raiseToListen = preferences.getBoolean("raise_to_listen", true);
             raiseToSpeak = preferences.getBoolean("raise_to_speak", false);
+            hideOnlineStatus = preferences.getBoolean("hideOnlineStatus", false);
+            secretlyReadMessages = preferences.getBoolean("secretlyReadMessages", false);
+            hideTypingStatus = preferences.getBoolean("hideTypingStatus", false);
+            hideStoryViews = preferences.getBoolean("hideStoryViews", false);
             nextMediaTap = preferences.getBoolean("next_media_on_tap", true);
             recordViaSco = preferences.getBoolean("record_via_sco", false);
             adaptableColorInBrowser = preferences.getBoolean("adaptableBrowser", false);
@@ -894,6 +902,38 @@ public class SharedConfig {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("multipleReactionsPromoShowed", multipleReactionsPromoShowed);
+        editor.apply();
+    }
+
+    public static void toggleHideOnlineStatus() {
+        hideOnlineStatus = !hideOnlineStatus;
+        SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("hideOnlineStatus", hideOnlineStatus);
+        editor.apply();
+    }
+
+    public static void toggleSecretlyReadMessages() {
+        secretlyReadMessages = !secretlyReadMessages;
+        SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("secretlyReadMessages", secretlyReadMessages);
+        editor.apply();
+    }
+
+    public static void toggleHideTypingStatus() {
+        hideTypingStatus = !hideTypingStatus;
+        SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("hideTypingStatus", hideTypingStatus);
+        editor.apply();
+    }
+
+    public static void toggleHideStoryViews() {
+        hideStoryViews = !hideStoryViews;
+        SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("hideStoryViews", hideStoryViews);
         editor.apply();
     }
 

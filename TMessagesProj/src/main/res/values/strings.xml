@@ -2610,6 +2610,16 @@
     <string name="SmartNotificationsDisabled">Disabled</string>
     <string name="SecretWebPage">Link Previews</string>
     <string name="SecretWebPageInfo">Link previews will be generated on Telegram servers. We do not store data about the links you send.</string>
+    <string name="GhostMode">Ghost Mode</string>
+    <string name="GhostModeInfo">These settings let you use Telegram without others knowing when you\'re online, typing, reading, or viewing their stories.</string>
+    <string name="HideOnlineStatus">Hide Online Status</string>
+    <string name="HideOnlineStatusAbout">Your online status will be hidden from others (till you send a new message)</string>
+    <string name="SecretlyReadMessages">Secretly Read Messages</string>
+    <string name="SecretlyReadMessagesAbout">Read others\' messages without sending read tick (like conversation preview)</string>
+    <string name="HideTypingStatus">Hide Typing</string>
+    <string name="HideTypingStatusAbout">Your status like typing, sending, recording etc... will not be sent to others</string>
+    <string name="HideStoryViews">Hide Story Views</string>
+    <string name="HideStoryViewsAbout">Viewing a story will not be reported to its owner</string>
     <string name="SecretChat">Secret chats</string>
     <string name="DirectShare">Direct Share</string>
     <string name="DirectShareInfo">Show recent chats in Android share menu</string>

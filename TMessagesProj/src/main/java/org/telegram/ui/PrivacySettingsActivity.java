@@ -160,6 +160,12 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
     @Keep
     private int secretWebpageRow;
     private int secretDetailRow;
+    private int ghostModeSectionRow;
+    private int hideOnlineStatusRow;
+    private int secretlyReadMessagesRow;
+    private int hideTypingStatusRow;
+    private int hideStoryViewsRow;
+    private int ghostModeDetailRow;
     private int rowCount;
 
     private final ArrayList<BotBiometry.Bot> biometryBots = new ArrayList<>();
@@ -506,6 +512,26 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(getMessagesController().secretWebpagePreview == 1);
                 }
+            } else if (position == hideOnlineStatusRow) {
+                SharedConfig.toggleHideOnlineStatus();
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(SharedConfig.hideOnlineStatus);
+                }
+            } else if (position == secretlyReadMessagesRow) {
+                SharedConfig.toggleSecretlyReadMessages();
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(SharedConfig.secretlyReadMessages);
+                }
+            } else if (position == hideTypingStatusRow) {
+                SharedConfig.toggleHideTypingStatus();
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(SharedConfig.hideTypingStatus);
+                }
+            } else if (position == hideStoryViewsRow) {
+                SharedConfig.toggleHideStoryViews();
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(SharedConfig.hideStoryViews);
+                }
             } else if (position == contactsDeleteRow) {
                 if (getParentActivity() == null) {
                     return;
@@ -795,6 +821,12 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
         secretMapRow = rowCount++;
         secretWebpageRow = rowCount++;
         secretDetailRow = rowCount++;
+        ghostModeSectionRow = rowCount++;
+        hideOnlineStatusRow = rowCount++;
+        secretlyReadMessagesRow = rowCount++;
+        hideTypingStatusRow = rowCount++;
+        hideStoryViewsRow = rowCount++;
+        ghostModeDetailRow = rowCount++;
         if (listAdapter != null && notify) {
             listAdapter.notifyDataSetChanged();
         }
@@ -1037,7 +1069,8 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                     position == newChatsRow && !getContactsController().getLoadingGlobalSettings() ||
                     position == emailLoginRow || position == paymentsClearRow || position == secretMapRow ||
                     position == contactsSyncRow || position == passportRow || position == contactsDeleteRow ||
-                    position == contactsSuggestRow || position == autoDeleteMesages || position == botsBiometryRow;
+                    position == contactsSuggestRow || position == autoDeleteMesages || position == botsBiometryRow ||
+                    position == hideOnlineStatusRow || position == secretlyReadMessagesRow || position == hideTypingStatusRow || position == hideStoryViewsRow;
         }
 
         @Override
@@ -1254,6 +1287,8 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                         privacyCell.setText(getString("SuggestContactsInfo", R.string.SuggestContactsInfo));
                     } else if (position == newChatsSectionRow) {
                         privacyCell.setText(getString("ArchiveAndMuteInfo", R.string.ArchiveAndMuteInfo));
+                    } else if (position == ghostModeDetailRow) {
+                        privacyCell.setText(getString("GhostModeInfo", R.string.GhostModeInfo));
                     }
                     break;
                 case 2:
@@ -1272,6 +1307,8 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                         headerCell.setText(getString("Contacts", R.string.Contacts));
                     } else if (position == newChatsHeaderRow) {
                         headerCell.setText(getString("NewChatsFromNonContacts", R.string.NewChatsFromNonContacts));
+                    } else if (position == ghostModeSectionRow) {
+                        headerCell.setText(getString("GhostMode", R.string.GhostMode));
                     }
                     break;
                 case 3:
@@ -1284,6 +1321,14 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                         textCheckCell.setTextAndCheck(getString("SuggestContacts", R.string.SuggestContacts), newSuggest, false);
                     } else if (position == newChatsRow) {
                         textCheckCell.setTextAndCheck(getString("ArchiveAndMute", R.string.ArchiveAndMute), archiveChats, false);
+                    } else if (position == hideOnlineStatusRow) {
+                        textCheckCell.setTextAndValueAndCheck(getString("HideOnlineStatus", R.string.HideOnlineStatus), getString("HideOnlineStatusAbout", R.string.HideOnlineStatusAbout), SharedConfig.hideOnlineStatus, false, true);
+                    } else if (position == secretlyReadMessagesRow) {
+                        textCheckCell.setTextAndValueAndCheck(getString("SecretlyReadMessages", R.string.SecretlyReadMessages), getString("SecretlyReadMessagesAbout", R.string.SecretlyReadMessagesAbout), SharedConfig.secretlyReadMessages, false, true);
+                    } else if (position == hideTypingStatusRow) {
+                        textCheckCell.setTextAndValueAndCheck(getString("HideTypingStatus", R.string.HideTypingStatus), getString("HideTypingStatusAbout", R.string.HideTypingStatusAbout), SharedConfig.hideTypingStatus, false, true);
+                    } else if (position == hideStoryViewsRow) {
+                        textCheckCell.setTextAndValueAndCheck(getString("HideStoryViews", R.string.HideStoryViews), getString("HideStoryViewsAbout", R.string.HideStoryViewsAbout), SharedConfig.hideStoryViews, false, false);
                     }
                     break;
                 case 5:
@@ -1393,11 +1438,11 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                     position == deleteAccountRow || position == webSessionsRow || position == groupsRow || position == paymentsClearRow ||
                     position == secretMapRow || position == contactsDeleteRow || position == botsBiometryRow) {
                 return 0;
-            } else if (position == privacyShadowRow || position == deleteAccountDetailRow || position == groupsDetailRow || position == sessionsDetailRow || position == secretDetailRow || position == botsDetailRow || position == contactsDetailRow || position == newChatsSectionRow) {
+            } else if (position == privacyShadowRow || position == deleteAccountDetailRow || position == groupsDetailRow || position == sessionsDetailRow || position == secretDetailRow || position == botsDetailRow || position == contactsDetailRow || position == newChatsSectionRow || position == ghostModeDetailRow) {
                 return 1;
-            } else if (position == securitySectionRow || position == advancedSectionRow || position == privacySectionRow || position == secretSectionRow || position == botsSectionRow || position == contactsSectionRow || position == newChatsHeaderRow) {
+            } else if (position == securitySectionRow || position == advancedSectionRow || position == privacySectionRow || position == secretSectionRow || position == botsSectionRow || position == contactsSectionRow || position == newChatsHeaderRow || position == ghostModeSectionRow) {
                 return 2;
-            } else if (position == secretWebpageRow || position == contactsSyncRow || position == contactsSuggestRow || position == newChatsRow) {
+            } else if (position == secretWebpageRow || position == contactsSyncRow || position == contactsSuggestRow || position == newChatsRow || position == hideOnlineStatusRow || position == secretlyReadMessagesRow || position == hideTypingStatusRow || position == hideStoryViewsRow) {
                 return 3;
             } else if (position == botsAndWebsitesShadowRow) {
                 return 4;
