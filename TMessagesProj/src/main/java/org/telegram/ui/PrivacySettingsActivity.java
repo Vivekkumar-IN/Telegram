@@ -753,15 +753,9 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
         groupsRow = rowCount++;
         privacyShadowRow = rowCount++;
 
-        if (getMessagesController().autoarchiveAvailable || getUserConfig().isPremium()) {
-            newChatsHeaderRow = rowCount++;
-            newChatsRow = rowCount++;
-            newChatsSectionRow = rowCount++;
-        } else {
-            newChatsHeaderRow = -1;
-            newChatsRow = -1;
-            newChatsSectionRow = -1;
-        }
+        newChatsHeaderRow = rowCount++;
+        newChatsRow = rowCount++;
+        newChatsSectionRow = rowCount++;
         advancedSectionRow = rowCount++;
         deleteAccountRow = rowCount++;
         deleteAccountDetailRow = rowCount++;
