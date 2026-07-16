@@ -14069,6 +14069,10 @@ public class MessagesController extends BaseController implements NotificationCe
         if (messageObject.scheduled) {
             return;
         }
+        boolean isOnceMedia = messageObject.messageOwner != null && messageObject.messageOwner.media != null && messageObject.messageOwner.media.ttl_seconds != 0;
+        if (SharedConfig.secretlyReadMessages && isOnceMedia) {
+            return;
+        }
         ArrayList<Integer> arrayList = new ArrayList<>();
         if (messageObject.messageOwner.mentioned) {
             getMessagesStorage().markMentionMessageAsRead(-messageObject.messageOwner.peer_id.channel_id, messageObject.getId(), messageObject.getDialogId());
@@ -14229,6 +14233,39 @@ public class MessagesController extends BaseController implements NotificationCe
             int time = getConnectionsManager().getCurrentTime();
             getMessagesStorage().createTaskForSecretChat(chat.id, time, time, 0, randomIds);
         }
+    }
+
+    public void forceMarkDialogHistoryRead(long dialogId) {
+        if (DialogObject.isEncryptedDialog(dialogId)) {
+            return;
+        }
+        TLRPC.Dialog dialog = dialogs_dict.get(dialogId);
+        if (dialog == null) {
+            return;
+        }
+        int maxId = dialog.top_message;
+        if (maxId == 0) {
+            return;
+        }
+        TLRPC.InputPeer inputPeer = getInputPeer(dialogId);
+        TLObject req;
+        if (inputPeer instanceof TLRPC.TL_inputPeerChannel) {
+            TLRPC.TL_channels_readHistory request = new TLRPC.TL_channels_readHistory();
+            request.channel = getInputChannel(-dialogId);
+            request.max_id = maxId;
+            req = request;
+        } else {
+            TLRPC.TL_messages_readHistory request = new TLRPC.TL_messages_readHistory();
+            request.peer = inputPeer;
+            request.max_id = maxId;
+            req = request;
+        }
+        getConnectionsManager().sendRequest(req, (response, error) -> {
+            if (error == null && response instanceof TLRPC.TL_messages_affectedMessages) {
+                TLRPC.TL_messages_affectedMessages res = (TLRPC.TL_messages_affectedMessages) response;
+                processNewDifferenceParams(-1, res.pts, -1, res.pts_count);
+            }
+        });
     }
 
     private void completeReadTask(ReadTask task) {
