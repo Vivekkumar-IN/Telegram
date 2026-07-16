@@ -1,0 +1,129 @@
+name: Build Telegram
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - standalone
+          - release
+          - debug
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: echo "y" | sdkmanager "ndk;27.2.12479018" --sdk_root=$ANDROID_SDK_ROOT
+
+      - name: Install ccache
+        run: |
+          sudo apt-get install -y ccache
+          ccache --max-size=2G
+          ccache --zero-stats
+
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-telegram-${{ inputs.build_type }}-${{ github.sha }}
+          restore-keys: |
+            ccache-telegram-${{ inputs.build_type }}-
+            ccache-telegram-
+
+      - name: Restore Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Configure secrets
+        env:
+          KEYSTORE_JKS: ${{ secrets.KEYSTORE_JKS }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo "$KEYSTORE_JKS" | base64 --decode > TMessagesProj/config/release.keystore
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > TMessagesProj/google-services.json
+          sed -i "s/RELEASE_KEY_PASSWORD=android/RELEASE_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}/" gradle.properties
+          sed -i "s/RELEASE_KEY_ALIAS=androidkey/RELEASE_KEY_ALIAS=${{ secrets.KEY_ALIAS }}/" gradle.properties
+          sed -i "s/RELEASE_STORE_PASSWORD=android/RELEASE_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}/" gradle.properties
+
+      - name: Configure API credentials
+        run: |
+          sed -i "s/public static int APP_ID = 4;/public static int APP_ID = ${{ secrets.API_ID }};/" \
+            TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+          sed -i 's/public static String APP_HASH = "014b35b6184100b085b0d0572f9b5103";/public static String APP_HASH = "${{ secrets.API_HASH }}";/' \
+            TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+
+      - name: Enable ccache for NDK
+        run: |
+          CCACHE_PATH=$(which ccache)
+          sed -i "s|arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21'|arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21', '-DCMAKE_C_COMPILER_LAUNCHER=${CCACHE_PATH}', '-DCMAKE_CXX_COMPILER_LAUNCHER=${CCACHE_PATH}'|" \
+            TMessagesProj/build.gradle
+
+      - name: Set build variant
+        id: variant
+        run: |
+          BUILD_TYPE="${{ inputs.build_type }}"
+          if [ "$BUILD_TYPE" = "standalone" ]; then
+            echo "task=assembleafatStandalone" >> $GITHUB_OUTPUT
+            echo "apk_path=TMessagesProj_App/build/outputs/apk/afat/standalone/app.apk" >> $GITHUB_OUTPUT
+            echo "artifact_name=telegram-standalone" >> $GITHUB_OUTPUT
+          elif [ "$BUILD_TYPE" = "release" ]; then
+            echo "task=assembleafatRelease" >> $GITHUB_OUTPUT
+            echo "apk_path=TMessagesProj_App/build/outputs/apk/afat/release/app.apk" >> $GITHUB_OUTPUT
+            echo "artifact_name=telegram-release" >> $GITHUB_OUTPUT
+          else
+            echo "task=assembleafatDebug" >> $GITHUB_OUTPUT
+            echo "apk_path=TMessagesProj_App/build/outputs/apk/afat/debug/app.apk" >> $GITHUB_OUTPUT
+            echo "artifact_name=telegram-debug" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build with Gradle
+        run: |
+          export CCACHE_DIR=~/.ccache
+          export PATH="/usr/lib/ccache:$PATH"
+          chmod +x ./gradlew
+          ./gradlew ${{ steps.variant.outputs.task }} --stacktrace
+
+      - name: ccache stats
+        run: ccache --show-stats
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.variant.outputs.artifact_name }}-${{ github.run_number }}
+          path: ${{ steps.variant.outputs.apk_path }}
+          retention-days: 7
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ github.run_number }}
+          path: |
+            **/build/outputs/logs/**
+            **/build/reports/**
+          retention-days: 3
