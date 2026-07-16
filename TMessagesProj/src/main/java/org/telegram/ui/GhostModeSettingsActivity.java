@@ -85,7 +85,7 @@ public class GhostModeSettingsActivity extends BaseFragment {
             ItemInner item = items.get(position);
             if (item.id == hideOnlineStatusRow) {
                 SharedConfig.toggleHideOnlineStatus();
-                ((TextCheckCell) view).setChecked(SharedConfig.hideOnlineStatus);
+                adapter.notifyDataSetChanged();
             } else if (item.id == secretlyReadMessagesRow) {
                 SharedConfig.toggleSecretlyReadMessages();
                 ((TextCheckCell) view).setChecked(SharedConfig.secretlyReadMessages);
@@ -193,6 +193,7 @@ public class GhostModeSettingsActivity extends BaseFragment {
                     return;
                 }
                 cell.setTextAndValueAndCheck(item.text.toString(), about, checked, true, divider);
+                cell.setEnabled(!(item.id == secretlyReadMessagesRow && SharedConfig.hideOnlineStatus));
             }
         }
 

@@ -736,6 +736,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private Long statusDrawableGiftId;
     private Drawable logoDrawable;
     private AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable statusDrawable;
+
+    private void updateGhostModeTitle() {
+        if (logoDrawable == null || statusDrawable == null || folderId != 0 || onlySelect) {
+            return;
+        }
+        SpannableStringBuilder ssb = new SpannableStringBuilder(SharedConfig.hideOnlineStatus ? getString(R.string.AppName) + " \uD83D\uDC7B" : getString(R.string.AppName));
+        ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        actionBar.setTitle(ssb, statusDrawable);
+    }
     private AnimatedStatusView animatedStatusView;
     public RightSlidingDialogContainer rightSlidingDialogContainer;
 
@@ -3446,9 +3455,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 logoDrawable = context.getResources().getDrawable(R.drawable.telegram_logo_2).mutate();
                 logoDrawable.setBounds(0, dp(2), logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
                 logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
-                SpannableStringBuilder ssb = new SpannableStringBuilder(SharedConfig.hideOnlineStatus ? getString(R.string.AppName) + " \uD83D\uDC7B" : getString(R.string.AppName));
-                ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                actionBar.setTitle(ssb, statusDrawable);
+                updateGhostModeTitle();
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
             }
             if (folderId == 0) {
@@ -6887,6 +6894,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
+        updateGhostModeTitle();
         if (dialogStoriesCell != null) {
             dialogStoriesCell.onResume();
         }
