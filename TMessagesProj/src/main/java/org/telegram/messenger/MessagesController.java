@@ -14261,10 +14261,6 @@ public class MessagesController extends BaseController implements NotificationCe
                 processNewDifferenceParams(-1, res.pts, -1, res.pts_count);
             }
         });
-        getMessagesStorage().resetMentionsCount(dialogId, 0, 0);
-        TLRPC.TL_messages_readMentions mentionsReq = new TLRPC.TL_messages_readMentions();
-        mentionsReq.peer = inputPeer;
-        getConnectionsManager().sendRequest(mentionsReq, null);
     }
 
     private void completeReadTask(ReadTask task) {

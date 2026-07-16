@@ -13412,7 +13412,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 presentFragment(new ChatActivity(args));
             });
             io.add(R.drawable.msg2_secret, getString(R.string.GhostMode), () -> {
-                presentFragment(new PrivacySettingsActivity());
+                presentFragment(new GhostModeSettingsActivity());
             });
             if (ApplicationLoader.applicationLoaderInstance != null) {
                 ApplicationLoader.applicationLoaderInstance.addItemOptions(io);
