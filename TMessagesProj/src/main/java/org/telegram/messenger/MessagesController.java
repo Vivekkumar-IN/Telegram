@@ -395,6 +395,7 @@ public class MessagesController extends BaseController implements NotificationCe
     private int statusRequest;
     private int statusSettingState;
     private boolean offlineSent;
+    private Runnable hiddenStatusRefreshRunnable;
     private String uploadingAvatar;
 
     private HashMap<String, Object> uploadingThemes = new HashMap<>();
@@ -14284,6 +14285,17 @@ public class MessagesController extends BaseController implements NotificationCe
             }
             statusRequest = 0;
         });
+    }
+
+    public void scheduleHiddenOnlineStatusRefresh() {
+        if (!SharedConfig.hideOnlineStatus) {
+            return;
+        }
+        if (hiddenStatusRefreshRunnable != null) {
+            AndroidUtilities.cancelRunOnUIThread(hiddenStatusRefreshRunnable);
+        }
+        hiddenStatusRefreshRunnable = this::refreshHiddenOnlineStatus;
+        AndroidUtilities.runOnUIThread(hiddenStatusRefreshRunnable, 2000);
     }
 
     private void completeReadTask(ReadTask task) {
