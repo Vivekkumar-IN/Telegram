@@ -16,6 +16,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: /home/runner/.ccache
 
     steps:
       - name: Checkout
@@ -42,7 +44,7 @@ jobs:
       - name: Restore ccache
         uses: actions/cache@v4
         with:
-          path: ~/.ccache
+          path: /home/runner/.ccache
           key: ccache-telegram-${{ inputs.build_type }}-${{ github.sha }}
           restore-keys: |
             ccache-telegram-${{ inputs.build_type }}-
@@ -102,7 +104,6 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          export CCACHE_DIR=~/.ccache
           export PATH="/usr/lib/ccache:$PATH"
           chmod +x ./gradlew
           ./gradlew ${{ steps.variant.outputs.task }} --stacktrace
